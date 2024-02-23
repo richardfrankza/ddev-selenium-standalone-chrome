@@ -55,6 +55,8 @@ You can now connect to [DDEV SITE URL]:5900 (password: `secret`) in your VNC cli
 
 Note that when using `ports`, only one project at a time can be running with port 5900.
 
+Mac OSX may report "You cannot control your own screen.". Choose another port such as `5901:5900`.
+
 ### Behat config example
 
 If you use Behat as a test running, adjust your `behat.yml`
@@ -72,6 +74,34 @@ If you use Behat as a test running, adjust your `behat.yml`
               - "--headless"
               - "--no-sandbox"
               - "--disable-dev-shm-usage"
+```
+
+## Using Laravel Dusk
+In `DuskTestCase.php` add the flags `--disable-dev-shm-usage` and optionally `--ignore-certificate-errors`
+
+Example
+
+```
+  protected function driver(): RemoteWebDriver
+    {
+        $options = (new ChromeOptions)->addArguments(collect([
+            $this->shouldStartMaximized() ? '--start-maximized' : '--window-size=1920,1080',
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--ignore-certificate-errors'
+        ])->unless($this->hasHeadlessDisabled(), function (Collection $items) {
+            return $items->merge([
+                '--headless=new',
+            ]);
+        })->all());
+
+        return RemoteWebDriver::create(
+            $_ENV['DUSK_DRIVER_URL'] ?? 'http://localhost:9515',
+            DesiredCapabilities::chrome()->setCapability(
+                ChromeOptions::CAPABILITY, $options
+            )
+        );
+    }
 ```
 
 ## Contribute
